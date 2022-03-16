@@ -1,0 +1,31 @@
+version: "3.3"
+
+services:
+  jenkinsfei:
+    image: 127.0.0.1:5000/imagenjenkinsfei
+    build: .
+    ports:
+      - "8085:8080"
+      - "50000:50000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - default
+      - traefik_public
+    deploy:
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=traefik_public"
+        - "traefik.http.routers.jenkinsfei.rule=(Host(`jenkinsfei.hopto.org`))"
+        - "traefik.http.routers.jenkinsfei.entrypoints=web"
+        - "traefik.http.routers.jenkinsfei.middlewares=https_redirect"
+        - "traefik.http.services.jenkinsfei.loadbalancer.server.port=8080"
+        - "traefik.http.services.jenkinsfei.loadbalancer.passhostheader=true"
+        - "traefik.http.routers.jenkinsfeisecured.rule=(Host(`jenkinsfei.hopto.org`))"
+        - "traefik.http.routers.jenkinsfeisecured.entrypoints=websecure"
+        - "traefik.http.routers.jenkinsfeisecured.tls.certresolver=myresolver"
+
+networks:
+  traefik_public:
+      external: true
